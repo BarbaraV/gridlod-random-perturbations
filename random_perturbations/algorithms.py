@@ -71,16 +71,22 @@ def compute_combined_MsStiffness(world,Nepsilon,aPert,aRefList, KmsijList,muTPri
             alphaT = np.zeros(len(aRefList))
             alpha = model['alpha']
             beta = model['beta']
+            try:
+               model['constr']
+            except:
+                constr=1.
+            else:
+                constr = model['constr']
             NFineperEpsilon = world.NWorldFine//Nepsilon
             NEpsilonperPatchCoarse = patchT[TInd].NPatchCoarse*(Nepsilon//world.NWorldCoarse)
             if dim == 2:
                 tmp_indx =np.array([np.arange(len(aRefList)-1)//NEpsilonperPatchCoarse[0],
                                     np.arange(len(aRefList)-1)%NEpsilonperPatchCoarse[0]])
                 indx = tmp_indx[0]*NFineperEpsilon[1]*patchT[TInd].NPatchFine[0]+ tmp_indx[1]*NFineperEpsilon[0]
-                alphaT[:len(alphaT)-1] = (rPatch()[indx]-alpha)/(beta-alpha)
+                alphaT[:len(alphaT)-1] = (rPatch()[indx]-constr*alpha)/(beta-alpha)
             elif dim == 1:
-                alphaT[:len(alphaT)-1] = (rPatch()[np.arange(len(aRefList)-1)*np.prod(NFineperEpsilon)]-alpha)/(beta-alpha)
-            alphaT[len(alphaT)-1] = 1.-np.sum(alphaT[:len(alphaT)-1])
+                alphaT[:len(alphaT)-1] = (rPatch()[np.arange(len(aRefList)-1)*np.prod(NFineperEpsilon)]-constr*alpha)/(beta-alpha)
+            alphaT[len(alphaT)-1] = constr-np.sum(alphaT[:len(alphaT)-1])
         elif model['name'] == 'incl':
             alphaT = np.zeros(len(aRefList))
             bgval = model['bgval']
